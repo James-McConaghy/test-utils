@@ -8,8 +8,20 @@ http.setResponseCallback(http.expectedStatuses($RESPONSES));
 
 export let options = {
     scenarios: {
-        requests: {
-            exec: "request",
+        discrete: {
+            exec: "discrete",
+            executor: "ramping-arrival-rate",
+            timeUnit: "1s",
+            startRate: 0,
+            preAllocatedVUs: 10,
+            maxVUs: 60,
+            stages: [
+                { target: 0, duration: "0s" },
+                { target: 20, duration: "20s" },
+            ],
+        },
+        diverese: {
+            exec: "diverese",
             executor: "ramping-arrival-rate",
             timeUnit: "1s",
             startRate: 0,
@@ -29,7 +41,17 @@ export let options = {
     },
 };
 
-
+export function discrete() {
+    // ensure to only use data that results in successful requests
+    $DISCRETE_DATA
+    request($PARAMS);
+}
+    
+export function diverese() {
+    // a variety of data should be used here
+    $DIVERSE_DATA
+    request($PARAMS);
+}
 
 const headers = {
     headers: {
@@ -37,9 +59,8 @@ const headers = {
     },
 };
 
-export function request() {
-    const param = randomItem(["1", "a"]);
-    const result = http.get(
+export function request($PARAMS) {
+    const result = http.$METHOD(
         `$HOST$PATH`,
         headers
     );

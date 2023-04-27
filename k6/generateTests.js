@@ -40,14 +40,26 @@ for (const path in doc.paths) {
             const cases = statusCodes.map(status => {
                 return `case ${status}:\n\t\thttp_req_duration_${status}.add(result.timings.duration)\n\t\tbreak;`
             })
+            const pathParams = parameters.filter(p => p.in === "path").map(p => { return p.name })
+
+            const discreteData = pathParams.map(p => {
+                return `const ${p} = randomItem(["${p}_1", "${p}_2"]);`
+            })
+            const diverseData = pathParams.map(p => {
+                return `const ${p} = randomItem(["${p}_1", "${p}_2", null, undefined, "invalid", 4]);`
+            })
 
             const replaced = contents
+                .replace(/\$THRESHOLDS/g, thresholds.join("\n\t\t"))
                 .replace(/\$RESPONSES/g, statusCodes.toString())
                 .replace(/\$TRENDS/g, trends.join("\n"))
-                .replace(/\$THRESHOLDS/g, thresholds.join("\n\t\t"))
+                .replace(/\$PATH/g, path.replace(/{/g, "${"))
+                .replace(/\$DISCRETE_DATA/g, discreteData.join(","))
+                .replace(/\$DIVERSE_DATA/g, diverseData.join(","))
+                .replace(/\$PARAMS/g, pathParams.join(","))
+                .replace(/\$METHOD/g, method)
                 .replace(/\$CASE/g, cases.join("\n\t"))
                 .replace(/\$HOST/g, host)
-                .replace(/\$PATH/g, path)
                 .replace(/\n\n\n/, "\n");
 
             fs.writeFile(`./outputs/${operationId}.js`, replaced, "utf-8", function (err) {
@@ -58,9 +70,5 @@ for (const path in doc.paths) {
             });
 
         })
-
-
-
-
     }
 }
