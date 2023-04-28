@@ -35,20 +35,20 @@ export let options = {
     },
     discardResponseBodies: true,
     thresholds: {
-        "http_req_failed": ["rate<=0"], // no unexpected response codes should occur ouside of expectedStatuses(200, 404).
+        "http_req_failed": ["rate<=0"], // no unexpected response codes should occur outside of expectedStatuses(200, 404).
         "http_req_duration": ["p(90)<1000", "p(95)<2000", "p(100)<3000"], // 90% of requests should be below 1000ms; 95% below 2000ms; ..
         $THRESHOLDS
     },
 };
 
 export function discrete() {
-    // ensure to only use data that results in successful requests
+    // ensure to only use data that results in successful responses
     $DISCRETE_DATA
     request($PARAMS);
 }
     
 export function diverse() {
-    // a variety of data should be used here
+    // a variety of data should be used here that will result in diverse responses
     $DIVERSE_DATA
     request($PARAMS);
 }

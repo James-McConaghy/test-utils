@@ -46,7 +46,7 @@ for (const path in doc.paths) {
                 return `const ${p} = randomItem(["${p}_1", "${p}_2"]);`
             })
             const diverseData = pathParams.map(p => {
-                return `const ${p} = randomItem(["${p}_1", "${p}_2", null, undefined, "invalid", 4]);`
+                return `const ${p} = randomItem(["${p}_1", "${p}_2", null, undefined, "invalid", 4, 82]);`
             })
 
             const replaced = contents
@@ -60,9 +60,9 @@ for (const path in doc.paths) {
                 .replace(/\$METHOD/g, method)
                 .replace(/\$CASE/g, cases.join("\n\t"))
                 .replace(/\$HOST/g, host)
-                .replace(/\n\n\n/g, "\n");
+                .replace(/\n\n\n/, "\n");
 
-            fs.writeFile(`./outputs/${operationId}.js`, replaced, "utf-8", function (err) {
+            fs.writeFile(`./${operationId}.performance.js`, replaced, "utf-8", function (err) {
                 if (err) {
                     console.log(err);
                     return;

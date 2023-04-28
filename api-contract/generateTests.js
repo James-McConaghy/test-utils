@@ -25,7 +25,7 @@ for (const path in doc.paths) {
         const responses = operation.responses || {};
 
         // Create a write stream to the output file
-        const stream = fs.createWriteStream(`${operationId}.spec.ts`, { flags: "a" });
+        const stream = fs.createWriteStream(`${operationId}.contract.spec.ts`, { flags: "a" });
 
         writeToFile(stream, `import { APIGatewayProxyResult } from "aws-lambda";`);
         writeToFile(stream, `import jestOpenAPI from "jest-openapi";`);
@@ -48,36 +48,37 @@ for (const path in doc.paths) {
             const response = responses[responseCode];
             const responseDescription = ` - ${response.description}` || "";
             const schema = determineSchema(response);
-            writeToFile(stream, ` describe("${responseCode}${responseDescription}", () => {`);
+            writeToFile(stream, `  describe("${responseCode}${responseDescription}", () => {`);
             writeToFile(stream, ``);
-            writeToFile(stream, ` let result: APIGatewayProxyResult;`);
-            writeToFile(stream, ` const expectedResponse = { };`);
+            writeToFile(stream, `    let result: APIGatewayProxyResult;`);
+            writeToFile(stream, `    const expectedResponse = { };`);
             writeToFile(stream, ``);
-            writeToFile(stream, ` beforeAll(async () => {`);
-            writeToFile(stream, ` result = await request("${host}")`);
-            writeToFile(stream, ` .${method}("${path}")`);
-            writeToFile(stream, ` });`);
+            writeToFile(stream, `    beforeAll(async () => {`);
+            writeToFile(stream, `      result = await request("${host}")`);
+            writeToFile(stream, `        .${method}(\`${path.replace(/{/g, "${")}\`)`);
+            writeToFile(stream, `        .set("x-api-key", "invalid-api-key");`);
+            writeToFile(stream, `    });`);
             writeToFile(stream, ``);
-            writeToFile(stream, ` it("returns with status code ${responseCode}", () => {`);
-            writeToFile(stream, ` expect(result.statusCode).toEqual(${responseCode});`);
-            writeToFile(stream, ` });`);
+            writeToFile(stream, `    it("returns with status code ${responseCode}", () => {`);
+            writeToFile(stream, `      expect(result.statusCode).toEqual(${responseCode});`);
+            writeToFile(stream, `    });`);
             writeToFile(stream, ``);
-            writeToFile(stream, ` it("returns the expected body", () => {`);
-            writeToFile(stream, ` expect(result.body).toEqual(expectedResponse);`);
-            writeToFile(stream, ` });`);
+            writeToFile(stream, `    it("returns the expected body", () => {`);
+            writeToFile(stream, `      expect(result.body).toEqual(expectedResponse);`);
+            writeToFile(stream, `    });`);
             writeToFile(stream, ``);
-            writeToFile(stream, ` it("matches OpenAPI spec", () => {`);
-            writeToFile(stream, ` expect(result).toSatisfyApiSpec();`);
+            writeToFile(stream, `    it("matches OpenAPI spec", () => {`);
+            writeToFile(stream, `      expect(result).toSatisfyApiSpec();`);
             if (schema[0] == "array") {
-                writeToFile(stream, ` for (const object of result.body) {`);
-                writeToFile(stream, ` expect(object).toSatisfySchemaInApiSpec("${schema[1]}");`);
-                writeToFile(stream, ` }`);
+                writeToFile(stream, `      for (const object of result.body) {`);
+                writeToFile(stream, `        expect(object).toSatisfySchemaInApiSpec("${schema[1]}");`);
+                writeToFile(stream, `      }`);
             } else {
-                writeToFile(stream, ` expect(result.body).toSatisfySchemaInApiSpec("${schema[1]}");`);
+                writeToFile(stream, `      expect(result.body).toSatisfySchemaInApiSpec("${schema[1]}");`);
             }
-            writeToFile(stream, ` });`);
+            writeToFile(stream, `    });`);
             writeToFile(stream, ``);
-            writeToFile(stream, ` });`);
+            writeToFile(stream, `  });`);
             writeToFile(stream, ``);
         }
         writeToFile(stream, `});`);
@@ -91,7 +92,7 @@ function determineSchema(response) {
         // is schema object
         if (response.content) {
             const ref = Object.entries(response.content)[0][1].schema["$ref"];
-            return ref.split("/").pop();
+            return ["ref", ref.split("/").pop()];
         }
         // is response object
         if (response["$ref"]) {
@@ -108,9 +109,9 @@ function determineSchema(response) {
             if (responseContent.schema["type"] == "object") {
                 console.log(" └-> Found object response type; doing the best I can to determine the appropriate schema");
                 return ["object", JSON.stringify(responseContent.schema["properties"]).split("schemas/").pop().split("\"")[0]];
-            }
+            }            
         }
-        throw new Error(` └-> Unable to determine schema from ${JSON.stringify(response)}; setting unknown`);
+        throw new Error(` └->  Unable to determine schema from ${JSON.stringify(response)}; setting unknown`);
     }
     catch (e) {
         console.log(e.message.toString());
