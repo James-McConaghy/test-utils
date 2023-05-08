@@ -1,22 +1,28 @@
 const yaml = require("js-yaml");
 const fs = require("fs");
 const { exit } = require("process");
+const { readArgs } = require("../utils/readArgs");
 
-const apiDocPath = process.argv[2];
+const args = readArgs();
 
-if (!apiDocPath || !fs.existsSync(apiDocPath)) {
+if (!args.apiDocPath || !fs.existsSync(args.apiDocPath)) {
     console.log(`Please supply a valid path parameter for the openAPI document yaml`);
-    console.log(` -> invalid path: ${apiDocPath}`);
+    console.log(` -> invalid path: ${args.apiDocPath}`);
     exit(1);
 }
-
-const doc = yaml.load(fs.readFileSync(apiDocPath, "utf8"));
+const doc = yaml.load(fs.readFileSync(args.apiDocPath, "utf8"));
+const desiredMethods = (args.method) ?  [args.method] : ["get", "post", "put", "delete"]
 const host = doc.servers[0].url;
 
 for (const path in doc.paths) {
 
     const operations = doc.paths[path];
     for (const method in operations) {
+        
+        if (!desiredMethods.includes(method)) {
+            continue;
+        }
+
         const operation = operations[method];
         const operationId = operation.operationId || "";
         const tags = operation.tags || [];
@@ -62,7 +68,7 @@ for (const path in doc.paths) {
                 .replace(/\$HOST/g, host)
                 .replace(/\n\n\n/g, "\n");
 
-            fs.writeFile(`./outputs/${operationId}.js`, replaced, "utf-8", function (err) {
+            fs.writeFile(`./${operationId}.js`, replaced, "utf-8", function (err) {
                 if (err) {
                     console.log(err);
                     return;
