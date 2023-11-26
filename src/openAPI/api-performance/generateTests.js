@@ -1,7 +1,7 @@
 const yaml = require("js-yaml");
 const fs = require("fs");
 const { exit } = require("process");
-const { readArgs } = require("../utils/readArgs");
+const { readArgs } = require("../../utils/readArgs");
 
 const args = readArgs();
 

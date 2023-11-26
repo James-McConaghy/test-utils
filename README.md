@@ -12,17 +12,15 @@ A suite of scripts to help generate tests from your openAPI docs.
 
 This script will allow you to quickly generate tests for each path, method and response documented in your openAPI yaml file.
 
-1. Copy the *openAPI* folder into the root folder of your project
-2. Execute the following code, ensuring to replace the path to your own openAPI document.
+1. Execute the following from the project you wish to generate the tests for; ensuring to replace the paths to this repository and your openAPI document.
 
 ```bash
   npm install --save-dev 'jest-openapi'
-  node openAPI/api-contract/generateTests.js docs/myOpenApiDocument.yaml
-  node openAPI/api-performance/generateTests.js docs/myOpenApiDocument.yaml
+  node <path-to-test-utils>/test-utils/src/openAPI/api-contract/generateTests.js --apiDocPath=<myproject>/docs/openAPI.yaml
+  node <path-to-test-utils>/test-utils/src/openAPI/api-performance/generateTests.js --apiDocPath=<myproject>/docs/openAPI.yaml
 ```
 
-3. Tests will get generated in the root folder, where the script was placed.
-4. Delete the *openAPI* folder
+2. Tests will get generated in the folder where the commands were executed.
 
 
 ## api-contract
